@@ -124,4 +124,134 @@ app/
 
 ---
 
+Rails Credentials & ActiveRecord Encryption Setup
+
+
+This guide documents the setup process for Rails Credentials, Active Record Encryption, and AWS S3 configuration.
+
+⸻
+
+1. Reset Existing Credentials
+
+If your credentials are corrupted or misconfigured, start clean:
+
+Delete:
+
+config/credentials/
+config/master.key
+config/credentials.yml.enc (or config/credentials/*.yml.enc)
+
+This removes all existing encrypted credentials.
+
+⸻
+
+2. Create New Development Credentials
+
+Run the following command:
+
+EDITOR="code --wait" bin/rails credentials:edit --environment development
+
+This will open a fresh credentials file in VS Code.
+
+⸻
+
+3. Add Active Record Encryption Keys
+
+In the editor, paste your encryption keys (sample structure shown):
+
+active_record_encryption:
+  primary_key: rS4CFtCpw0TL5ZoXlRLESLgV1eFcmVUE
+  deterministic_key: LnXECBLxQ2NQifisOlbcdYb0urICCxxu
+  key_derivation_salt: jXs0K8L8WO8AkfdjXemL5Gj3bA5DCRnt
+
+(Replace with the keys you intend to use initially.)
+
+⸻
+
+4. Add AWS Credentials
+
+Append the AWS S3 config below the encryption keys:
+
+aws:
+  access_key_id: YOUR_ACCESS_KEY
+  secret_access_key: YOUR_SECRET_KEY
+  region: ap-south-1
+  bucket: anvaya-storage-dev
+
+Update the keys according to your AWS IAM configuration.
+
+⸻
+
+5. Initialize ActiveRecord Encryption
+
+Run:
+
+rails db:encryption:init
+
+Rails will output a new set of encryption keys:
+
+primary_key: ...
+deterministic_key: ...
+key_derivation_salt: ...
+
+Copy these values and replace the existing ones in the credentials file under:
+
+active_record_encryption:
+  primary_key: <paste value>
+  deterministic_key: <paste value>
+  key_derivation_salt: <paste value>
+
+This step must be done — these are the actual keys Rails will use.
+
+⸻
+
+6. Verify Credentials Are Loaded
+
+Start Rails console:
+
+rails c
+
+Run:
+
+Rails.application.credentials.dig(:active_record_encryption, :primary_key)
+Rails.application.credentials.dig(:active_record_encryption, :deterministic_key)
+Rails.application.credentials.dig(:active_record_encryption, :key_derivation_salt)
+
+If each returns a non-nil string, your credentials setup is correct.
+
+⸻
+
+7. Remove Environment Variable Overrides
+
+If your app contains config like:
+
+enc.primary_key = ENV["AR_ENCRYPTION_PRIMARY_KEY"]
+enc.deterministic_key = ENV["AR_ENCRYPTION_DETERMINISTIC_KEY"]
+enc.key_derivation_salt = ENV["AR_ENCRYPTION_SALT"]
+
+Remove these lines.
+
+Rails will now load encryption keys directly from credentials.
+
+⸻
+
+8. Restart Rails
+
+Reload environment and credentials:
+
+bin/dev
+
+
+⸻
+
+✔ Setup Complete
+
+Your Rails app is now configured with:
+	•	Properly encrypted credentials
+	•	ActiveRecord Encryption keys
+	•	AWS S3 configuration
+	•	Clean loading of credentials without environment variable overrides
+
+⸻
+
 **📘 License:** MIT
