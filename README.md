@@ -294,4 +294,4 @@ Your Rails app is now configured with:
 
 ⸻
 
-**📘 License:** MIT
+
